@@ -1,0 +1,88 @@
+From 8a547f75cde3b18458cff67a76766a2b3a48dd6a Mon Sep 17 00:00:00 2001
+From: Marko Puric <marko@golioth.io>
+Date: Tue, 12 Mar 2024 17:02:39 +0100
+Subject: [PATCH] Multi MCU updates patch
+
+Signed-off-by: Marko Puric <marko@golioth.io>
+---
+ include/golioth/fw_update.h |  8 ++++++++
+ src/fw_update.c             | 32 ++++++++++++++++++--------------
+ 2 files changed, 26 insertions(+), 14 deletions(-)
+
+diff --git a/include/golioth/fw_update.h b/include/golioth/fw_update.h
+index 4a67aa3..544c808 100644
+--- a/include/golioth/fw_update.h
++++ b/include/golioth/fw_update.h
+@@ -155,4 +155,12 @@ enum golioth_status fw_update_change_boot_image(void);
+ void fw_update_end(void);
+ //---------------------------------------------------------------------------
+ 
++typedef void (*golioth_fw_update_callback)(void);
++
++void golioth_fw_update_register_callback(
++    golioth_fw_update_callback callback,
++    void *user_arg);
++
++int32_t get_image_size(void);
++
+ /// @}
+diff --git a/src/fw_update.c b/src/fw_update.c
+index 457507c..fcdd907 100644
+--- a/src/fw_update.c
++++ b/src/fw_update.c
+@@ -27,6 +27,8 @@ static void *_state_callback_arg;
+ static struct golioth_fw_update_config _config;
+ static fw_block_processor_ctx_t _fw_block_processor;
+ 
++golioth_fw_update_callback _aux_mcu_callback;
++
+ static enum golioth_status download_and_write_flash(void)
+ {
+     assert(_main_component);
+@@ -251,22 +253,11 @@ static void fw_update_thread(void *arg)
+                                             NULL,
+                                             GOLIOTH_SYS_WAIT_FOREVER);
+ 
+-        if (fw_update_change_boot_image() != GOLIOTH_OK)
+-        {
+-            GLTH_LOGE(TAG, "Firmware change boot image failed");
+-            fw_update_end();
+-            continue;
+-        }
++            _aux_mcu_callback();
+ 
+-        int countdown = 5;
+-        while (countdown > 0)
+-        {
+-            GLTH_LOGI(TAG, "Rebooting into new image in %d seconds", countdown);
+-            golioth_sys_msleep(1000);
+-            countdown--;
+-        }
+-        fw_update_reboot();
++            return;
+     }
++
+ }
+ 
+ void golioth_fw_update_init(struct golioth_client *client, const char *current_version)
+@@ -322,4 +313,17 @@ void golioth_fw_update_register_state_change_callback(
+     _state_callback_arg = user_arg;
+ }
+ 
++void golioth_fw_update_register_callback(
++    golioth_fw_update_callback callback,
++    void *user_arg)
++{
++    _aux_mcu_callback = callback;
++
++}
++
++int32_t get_image_size(void)
++{
++    return _main_component->size;
++}
++
+ #endif  // CONFIG_GOLIOTH_FW_UPDATE
+-- 
+2.42.0
+
