@@ -1,0 +1,57 @@
+From 8d32225dfd875620d9537e8466494936d576018e Mon Sep 17 00:00:00 2001
+From: Marko Puric <marko@golioth.io>
+Date: Tue, 19 Mar 2024 13:22:39 +0100
+Subject: [PATCH] smp_svr: add 52840 DK support
+
+Signed-off-by: Marko Puric <marko@golioth.io>
+---
+ .../smp_svr/boards/nrf52840dk_nrf52840.conf     | 12 ++++++++++++
+ .../smp_svr/boards/nrf52840dk_nrf52840.overlay  | 17 +++++++++++++++++
+ 2 files changed, 29 insertions(+)
+ create mode 100644 samples/subsys/mgmt/mcumgr/smp_svr/boards/nrf52840dk_nrf52840.conf
+ create mode 100644 samples/subsys/mgmt/mcumgr/smp_svr/boards/nrf52840dk_nrf52840.overlay
+
+diff --git a/samples/subsys/mgmt/mcumgr/smp_svr/boards/nrf52840dk_nrf52840.conf b/samples/subsys/mgmt/mcumgr/smp_svr/boards/nrf52840dk_nrf52840.conf
+new file mode 100644
+index 0000000000..63baf17cea
+--- /dev/null
++++ b/samples/subsys/mgmt/mcumgr/smp_svr/boards/nrf52840dk_nrf52840.conf
+@@ -0,0 +1,12 @@
++# Use minimal logging mode and disable info/debug logging to reduce flash space
++CONFIG_LOG_MODE_MINIMAL=y
++CONFIG_LOG_MAX_LEVEL=2
++CONFIG_LOG_DEFAULT_LEVEL=2
++
++# Disable RTT support
++CONFIG_USE_SEGGER_RTT=n
++
++# Disable Bluetooth PHY update support
++CONFIG_BT_USER_PHY_UPDATE=n
++CONFIG_BT_PHY_UPDATE=n
++
+diff --git a/samples/subsys/mgmt/mcumgr/smp_svr/boards/nrf52840dk_nrf52840.overlay b/samples/subsys/mgmt/mcumgr/smp_svr/boards/nrf52840dk_nrf52840.overlay
+new file mode 100644
+index 0000000000..d0fd183c8e
+--- /dev/null
++++ b/samples/subsys/mgmt/mcumgr/smp_svr/boards/nrf52840dk_nrf52840.overlay
+@@ -0,0 +1,17 @@
++/*
++ * Copyright (C) 2024 Golioth, Inc.
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++/ {
++	chosen {
++		zephyr,uart-mcumgr = &uart1;
++	};
++};
++
++&uart1 {
++	status = "okay";
++};
++
++
+-- 
+2.42.0
+
